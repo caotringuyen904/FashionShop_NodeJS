@@ -4,10 +4,8 @@ const morgan = require('morgan')
 const router = require('./router/index')
 const path = require('path')
 const cors = require('cors')
-const port = 8010
 const dotenv = require("dotenv")
 const {connectionMongoDB} = require("./database/index")
-
 
 dotenv.config()
 // app.use(express.urlencoded())
@@ -22,6 +20,6 @@ connectionMongoDB();
 app.use(router);
 app.use(express.static(path.join(__dirname, './data')))
 
-app.listen(port, () => {
-    console.log("Server is listening on http://localhost:" + port)
+app.listen(process.env.PORT || 4000, () => {
+    console.log("Server is listening on http://localhost:" + process.env.PORT || 4000)
 })

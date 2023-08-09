@@ -10,6 +10,8 @@ const jwt = require('jsonwebtoken')
 const userDataFilePath = path.join(__dirname, '../data/user.json');
 const bcrypt = require('bcryptjs')
 const { UserModel } = require('../models/Users')
+const Joi = require("joi");
+const { error } = require('console');
 
 
 const loginUser = (req, res) => {
@@ -45,32 +47,57 @@ const getUser = (req, res) => {
 
 
 const createUser = async (req, res) => {
-  const username = req.body.username
-  const password = req.body.password
+  const userSchema = Joi.object({
+    username: Joi.string().min(6).max(32).required().messages({
+      "string.min": "Username at least 6 characters",
+      "string.max": "Username most 32 characters",
+      "string.empty": "Username cannot empty"
+    }),
+    password: Joi.string().min(6).max(32).required().messages({
+      "string.min": "password at least 6 characters",
+      "string.max": "password most 32 characters",
+      "string.empty": "password cannot empty"
+    }),
+  })
 
-  const salt = bcrypt.genSaltSync()
-  const hash = bcrypt.hashSync(password, salt)
+  const username = req.body.username
+  const userPassword = req.body.password
 
   try {
-    const user = await UserModel.create({
+    const validate = userSchema.validate(req.body)
+    console.log(validate);
+
+    if (validate.error) {
+      return res.status(400).json({ message: validate.error.message })
+    }
+
+    const checkUser = await UserModel.findOne({
+      username: username
+    })
+
+    if (checkUser) {
+      return res.status(400).json({ message: "User is exist" })
+    }
+
+    const salt = bcrypt.genSaltSync()
+    const hash = bcrypt.hashSync(userPassword, salt)
+
+    const user = new UserModel({
       username: username,
       password: hash
     })
 
-    const {password, ...returnUser} = user
+    const result = await user.save()
 
     return res.status(200).json({
       message: 'create user success',
-      user: returnUser
+      user: result
     })
 
   } catch (error) {
     console.log(error);
-    return res.status(500).json({message : "error"})
+    return res.status(500).json({ message: "error" })
   }
-
-
-
 
 };
 
