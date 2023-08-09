@@ -6,6 +6,7 @@ const path = require('path')
 const cors = require('cors')
 const port = 8010
 const dotenv = require("dotenv")
+const {connectionMongoDB} = require("./database/index")
 
 
 dotenv.config()
@@ -16,6 +17,7 @@ app.use(cors({
     origin: "*"
 }))
 
+connectionMongoDB();
 
 app.use(router);
 app.use(express.static(path.join(__dirname, './data')))
